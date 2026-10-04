@@ -1,0 +1,4 @@
+lender,principal,maturity_date,interest_rate
+Bank X,250000000.0,2027-04-02,0.095
+Bank Y,300000000.0,2029-03-22,0.105
+NBFC Z,150000000.0,2027-01-02,0.135

@@ -1,0 +1,83 @@
+"""STEP 14 - Streamlit dashboard.  Run: streamlit run frontend/app.py  (from project root)"""
+import os, sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import streamlit as st
+import plotly.express as px
+import pandas as pd
+from backend.services import pipeline
+from risk_engine.findings import to_markdown
+from finance_engine.scenarios import Base, Scenario, run as run_scenario, sensitivity
+
+st.set_page_config(page_title="DealLens AI", layout="wide")
+st.title("DealLens AI: first-pass M&A due diligence")
+st.caption("Findings are flags for human investigation, not conclusions.")
+
+with st.sidebar:
+    pdfs = st.file_uploader("Upload PDFs (annual report, contracts)", type="pdf", accept_multiple_files=True)
+    for f in pdfs or []:
+        path = os.path.join("data/raw", f.name)
+        open(path, "wb").write(f.getbuffer())
+        st.write(f"{f.name}: {pipeline.add_pdf(path)} chunks indexed")
+    if st.button("Run analysis", type="primary"):
+        pipeline.analyze()
+
+S = pipeline.STATE
+if not S:
+    st.info("Click **Run analysis** (uses data/raw; generate it with `python data/generate_sample_data.py`).")
+    st.stop()
+
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["Risks", "Financials", "Dependencies", "Scenario", "Ask / Search"])
+
+with tab1:
+    for f in S["findings"]:
+        icon = {"High": "🔴", "Medium": "🟠", "Low": "🟡"}[f["severity"]]
+        with st.expander(f"{icon} #{f['rank']} {f['title']}"):
+            st.write(f["detail"]); st.caption(f"Evidence: {f['evidence']}")
+            st.markdown("**Questions:**\n" + "\n".join(f"- {q}" for q in f["questions"]))
+    st.download_button("Download report (.md)", to_markdown(S["findings"]), "deallens_report.md")
+
+with tab2:
+    r = S["ratios"]
+    st.dataframe(r.set_index("year").T.style.format("{:,.2f}"), use_container_width=True)
+    st.plotly_chart(px.line(r, x="year", y=["dso", "dio", "dpo"], markers=True, title="Working-capital days"),
+                    use_container_width=True)
+
+with tab3:
+    c1, c2 = st.columns(2)
+    c1.plotly_chart(px.pie(S["cust"], names="customer", values="revenue", title="Revenue by customer"), use_container_width=True)
+    c2.plotly_chart(px.pie(S["sup"], names="supplier", values="procurement", title="Procurement by supplier"), use_container_width=True)
+    st.subheader("Suspicious-transaction scores")
+    st.dataframe(S["scored_tx"].head(25)[["date", "vendor", "amount", "anomaly_score"]])
+
+with tab4:
+    f = S["fin"].sort_values("year").iloc[-1]
+    base = Base(f.revenue, f.cogs, f.operating_expenses, f.depreciation, f.interest_expense, f.capex,
+                f.total_debt, f.interest_expense + S["debt"]["principal"].sum() * 0.2)
+    a, b, c = st.columns(3)
+    rc = a.slider("Revenue change %", -40, 40, -15) / 100
+    oc = b.slider("Opex change %", -20, 30, 8) / 100
+    lost = c.slider("Lost customer revenue (Cr)", 0, 100, 0) * 1e7
+    sc = Scenario(revenue_change=rc, opex_change=oc, lost_customer_revenue=lost)
+    o = run_scenario(base, sc)
+    m = st.columns(4)
+    m[0].metric("Revenue (Cr)", f"{o['revenue']/1e7:,.0f}", f"{o['delta_revenue']/1e7:,.0f}")
+    m[1].metric("EBITDA (Cr)", f"{o['ebitda']/1e7:,.0f}", f"{o['delta_ebitda']/1e7:,.0f}")
+    m[2].metric("FCF (Cr)", f"{o['free_cash_flow']/1e7:,.0f}", f"{o['delta_fcf']/1e7:,.0f}")
+    m[3].metric("Debt/EBITDA", f"{o['debt_to_ebitda']:.2f}x")
+    sens = pd.DataFrame(sensitivity(base, sc, "revenue_change", [x / 100 for x in range(-30, 31, 5)]))
+    st.plotly_chart(px.line(sens, x="revenue_change", y="ebitda", title="EBITDA sensitivity to revenue change"),
+                    use_container_width=True)
+
+with tab5:
+    q = st.text_input("Ask the investigation agent", "Find the top financial risks an acquirer should investigate.")
+    if st.button("Investigate"):
+        if not os.getenv("ANTHROPIC_API_KEY"):
+            st.warning("Set ANTHROPIC_API_KEY to enable the agent.")
+        else:
+            from agent.agent import investigate
+            from agent.tools import Toolbox
+            st.markdown(investigate(q, Toolbox(S, pipeline.DOCS["index"])))
+    dq = st.text_input("Search documents (page-cited)")
+    if dq and pipeline.DOCS["index"]:
+        for h in pipeline.DOCS["index"].search(dq):
+            st.write(f"**{h['source']} p.{h['page']}** (score {h['score']:.2f})"); st.caption(h["text"][:400])
