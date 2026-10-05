@@ -1,112 +1,99 @@
 # 🔎 DealLens AI
 
-### AI-Powered M&A Due Diligence & Risk Intelligence Platform
+## AI-Powered M&A Due Diligence & Risk Intelligence Platform
 
-DealLens AI is an evidence-first financial investigation platform designed to accelerate **M&A due diligence** by automatically analyzing financial, transaction, customer, supplier, debt, and contract data.
+> **Evidence-first financial investigation • Automated risk detection • Human analyst in the loop**
 
-Instead of simply generating an AI summary, DealLens combines **deterministic financial analysis, anomaly detection, risk scoring, dependency analysis, and knowledge-graph relationships** to surface potential deal risks and provide evidence for every important finding.
+DealLens AI is an AI-assisted M&A due-diligence platform that analyzes financial, transaction, customer, supplier, debt, and contract data to identify potential business risks and generate evidence-backed investigation findings.
 
-> **AI-assisted investigation. Evidence first. Human analyst in the loop.**
+Instead of relying only on an LLM to summarize documents, DealLens combines **deterministic financial analysis, machine-learning-based anomaly detection, dependency analysis, contract intelligence, risk scoring, and optional AI interpretation**.
 
 ---
 
-## 📌 Problem
+# 📋 Table of Contents
 
-M&A due diligence requires analysts to investigate large amounts of:
+- [Problem](#-problem)
+- [Solution](#-solution)
+- [Architecture](#-architecture)
+- [Tech Stack](#-tech-stack)
+- [Dataset](#-dataset)
+- [Installation](#-installation)
+- [Usage](#-usage)
+- [Screenshots](#-screenshots)
+- [Results](#-results)
+- [API Documentation](#-api-documentation)
+- [Future Improvements](#-future-improvements)
+
+---
+
+# ❗ Problem
+
+Mergers and Acquisitions (M&A) require extensive due diligence before an investment or acquisition decision is made.
+
+Analysts may need to examine:
 
 - Financial statements
+- Revenue and profitability
+- Operating cash flow
+- Customer concentration
+- Supplier dependency
 - Transaction records
-- Customer data
-- Supplier data
 - Debt schedules
 - Contracts
 - Operational dependencies
 
-Important risks can easily be missed when information is distributed across multiple files.
+When this information is spread across multiple datasets and documents, manually identifying relationships and hidden risks can be time-consuming.
 
-Common examples include:
+Important patterns can easily be overlooked, such as:
 
 - Revenue growing while cash generation deteriorates
-- Receivables increasing faster than revenue
+- Receivables growing faster than revenue
 - Excessive customer concentration
 - Supplier dependency
-- Suspicious or duplicate transactions
+- Duplicate transactions
+- Unusual transaction amounts
 - Upcoming debt maturities
-- Contract renewal or change-of-control risks
-- Hidden relationships between entities
+- Contract renewal risks
+- Potential change-of-control issues
 
-Traditional analysis is often manual, time-consuming, and difficult to reproduce.
+### The core problem
+
+> **How can analysts investigate large amounts of business data faster while keeping risk findings explainable and traceable to evidence?**
 
 ---
 
 # 💡 Solution
 
-DealLens AI provides a centralized investigation workspace that:
+DealLens AI provides a centralized investigation workspace that combines multiple analytical engines into a single platform.
+
+The system:
 
 1. Ingests structured business data
-2. Validates and normalizes the data
-3. Calculates deterministic financial metrics
+2. Validates and processes the data
+3. Calculates financial metrics
 4. Detects transaction anomalies
-5. Identifies customer and supplier concentration
-6. Analyzes debt and contract exposure
-7. Builds relationships between entities
-8. Assigns risk severity
-9. Presents evidence-backed findings
-10. Allows analysts to investigate and interpret the results
+5. Analyzes customer concentration
+6. Analyzes supplier dependency
+7. Evaluates debt exposure
+8. Analyzes contract-related risks
+9. Builds relationships between entities
+10. Aggregates findings into a risk register
+11. Presents evidence through an interactive dashboard
+12. Allows optional AI-assisted interpretation
 
-The system separates **calculated facts and ML signals from optional LLM interpretation**, reducing the risk of unsupported AI-generated claims.
+### Evidence-first approach
 
----
+DealLens separates **calculated evidence** from **AI-generated interpretation**.
 
-# 🏗️ Architecture
+For example:
 
 ```text
-                    ┌─────────────────────┐
-                    │   Source Documents  │
-                    │                     │
-                    │ Financials          │
-                    │ Transactions        │
-                    │ Customers           │
-                    │ Suppliers           │
-                    │ Debt                 │
-                    │ Contracts            │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │  Document / Data    │
-                    │      Engine         │
-                    └──────────┬──────────┘
-                               │
-              ┌────────────────┼────────────────┐
-              │                │                │
-              ▼                ▼                ▼
-       Finance Engine    Anomaly Engine    Risk Engine
-              │                │                │
-              └────────────────┼────────────────┘
-                               │
-              ┌────────────────┼────────────────┐
-              │                │                │
-              ▼                ▼                ▼
-      Dependency Engine   Contract Engine   Graph Engine
-              │                │                │
-              └────────────────┼────────────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │ Investigation /     │
-                    │ Findings Layer      │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │   Streamlit UI      │
-                    │                     │
-                    │ Executive View      │
-                    │ Risk Register       │
-                    │ Financials          │
-                    │ Dependencies        │
-                    │ Transactions        │
-                    │ Scenario Analysis   │
-                    │ Documents / AI      │
-                    └─────────────────────┘
+Revenue increased
+        ↓
+Operating Cash Flow decreased
+        ↓
+Cash conversion weakened
+        ↓
+Potential financial risk
+        ↓
+Analyst investigation

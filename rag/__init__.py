@@ -1,0 +1,3 @@
+"""
+DealLens semantic retrieval layer.
+"""

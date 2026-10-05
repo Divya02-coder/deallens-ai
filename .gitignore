@@ -1,6 +1,38 @@
+# Python
 __pycache__/
-*.pyc
-.env
-venv/
+*.py[cod]
+*.pyo
+
+# Virtual environment
 .venv/
-data/raw/*.pdf
+venv/
+env/
+
+# Environment variables
+.env
+
+
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Generated vector database
+data/vector_db/
+
+# Cache
+.cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Python tooling
+.pytest_cache/
+
+# Temporary files
+*.tmp
+*.log
