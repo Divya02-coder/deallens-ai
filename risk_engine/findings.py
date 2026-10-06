@@ -42,17 +42,6 @@ def run_all(data_dir: str = "data/raw") -> dict:
                 + debt_findings(debt) + contract_findings(contracts, shares)
                 + threshold_clustering(tx) + duplicate_payments(tx) + outlier_findings(scored))
     bf = benford_first_digit(tx["amount"])
-    if bf["suspicious"]:
-        findings.append({
-            "id": "benford",
-            "category": "Transactions",
-            "severity": "Medium",
-            "title": "Transaction amounts deviate from Benford's-law expectations",
-            "detail": f"First-digit analysis produced a chi-square statistic of {bf['chi_square']:.1f} across {bf['n']:,} positive payments. This is a screening signal only and is not evidence of fraud.",
-            "evidence": [{"source": "transactions.csv", "rows": bf["n"], "method": "Benford first-digit test"}],
-            "questions": ["Review the transaction population and business mix before interpreting the deviation.",
-                          "Are there legitimate pricing, batching, or threshold effects affecting the first-digit distribution?"],
-        })
     for issue in validate_statements(fin):
         findings.append({"id": "validation", "category": "Data integrity", "severity": "High",
                          "title": f"Statement check failed: {issue['check']}", "detail": f"FY{issue['year']}",

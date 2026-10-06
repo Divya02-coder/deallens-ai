@@ -1,216 +1,71 @@
-from document_engine.search import DocIndex
+"""Deterministic investigation tools exposed to the Gemini agent."""
+from __future__ import annotations
+import json
+from finance_engine.ratios import compute_ratios
+from dependency_engine.concentration import concentration
+from graph_engine.knowledge_graph import build_graph, query
 
 
 class Toolbox:
-    """
-    Collection of controlled tools available to the
-    DealLens AI investigation agent.
-    """
+    def __init__(self, state: dict, doc_index=None, company: str = "Target Co"):
+        self.s, self.docs, self.company = state, doc_index, company
+        self.graph = build_graph(company, state.get("cust"), state.get("sup"), state.get("debt"), state.get("contracts"))
 
-    def __init__(self, doc_index=None, state=None):
-        self.docs = doc_index
-        self.state = state or {}
+    def list_findings(self, category: str | None = None):
+        return [x for x in self.s.get("findings", []) if not category or x.get("category", "").lower() == category.lower()]
 
-    # =========================================================
-    # DOCUMENT SEARCH
-    # =========================================================
+    def calculate_ratio(self, name: str, year: int | None = None):
+        r = self.s.get("ratios")
+        if r is None or name not in r.columns:
+            return {"error": f"unknown ratio. available: {list(r.columns) if r is not None else []}"}
+        row = r if year is None else r[r["year"] == year]
+        return row[["year", name]].to_dict("records")
 
-    def search_documents(
-        self,
-        query_text: str,
-        k: int = 5,
-    ):
+    def analyze_customers(self):
+        c = concentration(self.s["cust"], "customer", "revenue")
+        return {k: c[k] for k in ("top1_name", "top1", "top_n", "hhi")}
+
+    def analyze_suppliers(self):
+        c = concentration(self.s["sup"], "supplier", "procurement")
+        return {k: c[k] for k in ("top1_name", "top1", "top_n", "hhi")}
+
+    def query_knowledge_graph(self, rel: str | None = None, min_share: float = 0.0):
+        return query(self.graph, self.company, rel, min_share)
+
+    def search_documents(self, query_text: str, k: int = 5):
         if not self.docs:
-            return {
-                "error": (
-                    "No documents indexed. "
-                    "Upload a PDF first."
-                )
-            }
+            return {"error": "No documents indexed."}
+        return {"query": query_text, "results": self.docs.search(query_text, k)}
 
-        results = self.docs.search(
-            query_text,
-            k,
-        )
+    def verify_claim(self, claim: str, k: int = 5):
+        results = self.docs.search(claim, k) if self.docs else []
+        from ai_engine.evidence_verifier import EvidenceVerifier
+        return EvidenceVerifier().verify(claim, results)
 
-        if not results:
-            return {
-                "query": query_text,
-                "results": [],
-                "message": (
-                    "No relevant evidence found."
-                ),
-            }
+    def get_transaction_anomalies(self, limit: int = 10):
+        tx = self.s.get("scored_tx")
+        if tx is None:
+            return {"error": "Transaction analysis is not available."}
+        cols = [c for c in ["date", "vendor", "amount", "anomaly_score"] if c in tx.columns]
+        return tx.sort_values("anomaly_score", ascending=False).head(limit)[cols].to_dict("records")
 
-        return {
-            "query": query_text,
-            "results": results,
-        }
+    def run(self, name: str, args: dict) -> str:
+        fn = getattr(self, name, None)
+        if name.startswith("_") or fn is None:
+            return json.dumps({"error": f"unknown tool {name}"})
+        try:
+            return json.dumps(fn(**(args or {})), default=str)[:14000]
+        except Exception as e:
+            return json.dumps({"error": str(e)})
 
-    # =========================================================
-    # FINANCIAL ANALYSIS
-    # =========================================================
-
-    def get_financial_summary(self):
-        """
-        Return the financial analysis already calculated
-        by the deterministic DealLens pipeline.
-        """
-
-        if not self.state:
-            return {
-                "error": "No analysis state is available."
-            }
-
-        result = {}
-
-        # Keep the tool safe even if some keys don't exist.
-        for key in [
-            "financials",
-            "ratios",
-            "findings",
-            "risks",
-        ]:
-            if key in self.state:
-                result[key] = self.state[key]
-
-        if not result:
-            return {
-                "message": (
-                    "No financial summary was available "
-                    "from the current analysis."
-                )
-            }
-
-        return result
-
-    # =========================================================
-    # FINDINGS
-    # =========================================================
-
-    def get_findings(self):
-        """
-        Return deterministic DealLens findings.
-        """
-
-        findings = self.state.get(
-            "findings",
-            [],
-        )
-
-        return {
-            "findings": findings
-        }
-
-    # =========================================================
-    # GENERIC TOOL DISPATCHER
-    # =========================================================
-
-    def run(
-        self,
-        tool_name: str,
-        arguments: dict,
-    ):
-        """
-        Execute a tool requested by the AI agent.
-        """
-
-        if arguments is None:
-            arguments = {}
-
-        if tool_name == "search_documents":
-
-            return self.search_documents(
-                query_text=arguments.get(
-                    "query_text",
-                    arguments.get(
-                        "query",
-                        "",
-                    ),
-                ),
-                k=int(
-                    arguments.get(
-                        "k",
-                        5,
-                    )
-                ),
-            )
-
-        if tool_name == "get_financial_summary":
-
-            return self.get_financial_summary()
-
-        if tool_name == "get_findings":
-
-            return self.get_findings()
-
-        return {
-            "error": (
-                f"Unknown DealLens tool: "
-                f"{tool_name}"
-            )
-        }
-
-
-# =============================================================
-# GEMINI TOOL SCHEMAS
-# =============================================================
 
 TOOL_SCHEMAS = [
-
-    {
-        "name": "search_documents",
-        "description": (
-            "Search indexed company documents using "
-            "semantic similarity. Use this when the "
-            "investigation needs evidence from uploaded "
-            "PDFs or business documents."
-        ),
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "query_text": {
-                    "type": "STRING",
-                    "description": (
-                        "The question or topic to search "
-                        "for in the indexed documents."
-                    ),
-                },
-                "k": {
-                    "type": "INTEGER",
-                    "description": (
-                        "Number of relevant document "
-                        "chunks to retrieve."
-                    ),
-                },
-            },
-            "required": [
-                "query_text"
-            ],
-        },
-    },
-
-    {
-        "name": "get_financial_summary",
-        "description": (
-            "Retrieve the deterministic financial "
-            "analysis already calculated by DealLens."
-        ),
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {},
-        },
-    },
-
-    {
-        "name": "get_findings",
-        "description": (
-            "Retrieve risk findings generated by "
-            "the deterministic DealLens analysis."
-        ),
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {},
-        },
-    },
+    {"name":"list_findings","description":"List deterministic risk findings, optionally by category.","parameters":{"type":"OBJECT","properties":{"category":{"type":"STRING"}}}},
+    {"name":"calculate_ratio","description":"Retrieve a computed financial ratio by year.","parameters":{"type":"OBJECT","properties":{"name":{"type":"STRING"},"year":{"type":"INTEGER"}},"required":["name"]}},
+    {"name":"analyze_customers","description":"Return customer concentration metrics.","parameters":{"type":"OBJECT","properties":{}}},
+    {"name":"analyze_suppliers","description":"Return supplier concentration metrics.","parameters":{"type":"OBJECT","properties":{}}},
+    {"name":"query_knowledge_graph","description":"Query customer, supplier and debt relationships.","parameters":{"type":"OBJECT","properties":{"rel":{"type":"STRING"},"min_share":{"type":"NUMBER"}}}},
+    {"name":"search_documents","description":"Search uploaded evidence and return source/page/location metadata.","parameters":{"type":"OBJECT","properties":{"query_text":{"type":"STRING"},"k":{"type":"INTEGER"}},"required":["query_text"]}},
+    {"name":"verify_claim","description":"Check a claim against retrieved document evidence.","parameters":{"type":"OBJECT","properties":{"claim":{"type":"STRING"},"k":{"type":"INTEGER"}},"required":["claim"]}},
+    {"name":"get_transaction_anomalies","description":"Return highest-scoring unusual transactions from the deterministic anomaly model.","parameters":{"type":"OBJECT","properties":{"limit":{"type":"INTEGER"}}}},
 ]

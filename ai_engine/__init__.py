@@ -1,3 +1,0 @@
-"""
-DealLens AI generation layer.
-"""

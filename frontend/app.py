@@ -1,1100 +1,175 @@
-import sys
+"""DealLens AI - native Streamlit investigation dashboard.
+Run from project root: python -m streamlit run frontend/app.py
+"""
+from __future__ import annotations
+import os, sys
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-# ============================================================
-# PROJECT PATH
-# ============================================================
-
-ROOT = Path(__file__).resolve().parents[1]
-
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-
-# ============================================================
-# IMPORTS
-# ============================================================
-
-import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
-
-from dotenv import load_dotenv
+import streamlit as st
 
 from backend.services import pipeline
+from risk_engine.findings import to_markdown
+from finance_engine.scenarios import Base, Scenario, run as run_scenario, sensitivity
 
-
-load_dotenv()
-
-
-# ============================================================
-# PAGE CONFIG
-# ============================================================
-
-st.set_page_config(
-    page_title="DealLens | M&A Intelligence",
-    page_icon="◈",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
-
-
-# ============================================================
-# LOAD CSS
-# ============================================================
-
-css_path = Path(__file__).parent / "style.css"
-
-if css_path.exists():
-    st.markdown(
-        f"<style>{css_path.read_text()}</style>",
-        unsafe_allow_html=True,
-    )
-
-
-# ============================================================
-# SESSION STATE
-# ============================================================
-
-if "page" not in st.session_state:
-    st.session_state.page = "Overview"
-
-if "analysis_complete" not in st.session_state:
-    st.session_state.analysis_complete = False
-
-
-# ============================================================
-# HELPERS
-# ============================================================
-
-def safe_float(value, default=0.0):
-    try:
-        if pd.isna(value):
-            return default
-        return float(value)
-    except Exception:
-        return default
-
-
-def clean_columns(df):
-    if df is None:
-        return df
-
-    df = df.copy()
-
-    duplicate_mask = df.columns.duplicated()
-
-    if duplicate_mask.any():
-        df = df.loc[:, ~duplicate_mask]
-
-    return df
-
-
-def latest_row(df):
-    if df is None or df.empty:
-        return None
-
-    df = clean_columns(df)
-
-    if "year" in df.columns:
-        df = df.sort_values("year")
-
-    return df.iloc[-1]
-
-
-def get_state():
-    return getattr(
-        pipeline,
-        "STATE",
-        {},
-    )
-
-
-def get_findings():
-    state = get_state()
-
-    findings = state.get(
-        "findings",
-        [],
-    )
-
-    if findings is None:
-        return []
-
-    return findings
-
-
-def finding_title(f):
-    return (
-        f.get("title")
-        or f.get("name")
-        or f.get("risk")
-        or "Investigation finding"
-    )
-
-
-def finding_description(f):
-    return (
-        f.get("description")
-        or f.get("message")
-        or f.get("detail")
-        or "Requires analyst investigation."
-    )
-
-
-def finding_severity(f):
-    return str(
-        f.get(
-            "severity",
-            "MEDIUM",
-        )
-    ).upper()
-
-
-# ============================================================
-# HEADER
-# ============================================================
-
-st.markdown(
-    """
-    <div class="deallens-header">
-
-        <div class="brand">
-
-            <div class="brand-mark">
-                DL
-            </div>
-
-            <div>
-                <div class="brand-title">
-                    DealLens
-                </div>
-
-                <div class="brand-subtitle">
-                    M&A Intelligence & Due-Diligence Workspace
-                </div>
-            </div>
-
-        </div>
-
-        <div class="status-pill">
-            <span class="status-dot"></span>
-            Intelligence Engine Online
-        </div>
-
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
-
-# ============================================================
-# SIDEBAR
-# ============================================================
+st.set_page_config(page_title="DealLens AI", page_icon="🔎", layout="wide")
+st.title("DealLens AI")
+st.caption("Evidence-first M&A due-diligence intelligence. Findings are investigation flags, not conclusions.")
 
 with st.sidebar:
-
-    st.markdown(
-        "### DEAL WORKSPACE"
-    )
-
-    pages = [
-        "Overview",
-        "Risk Intelligence",
-        "Financial Intelligence",
-        "Dependencies",
-        "Transactions",
-        "Scenario Lab",
-        "Documents",
-        "AI Investigation",
-    ]
-
-    for page in pages:
-
-        if st.button(
-            page,
-            key=f"nav_{page}",
-            width="stretch",
-        ):
-            st.session_state.page = page
-            st.rerun()
-
+    st.header("Deal workspace")
+    uploaded = st.file_uploader("Upload evidence", type=["pdf","csv","xlsx","xls","txt","md","json","docx"], accept_multiple_files=True)
+    if uploaded:
+        for f in uploaded:
+            key=f"uploaded_{f.name}_{f.size}"
+            if not st.session_state.get(key):
+                try:
+                    path=pipeline.save_upload(f)
+                    meta=pipeline.add_file(path)
+                    st.session_state[key]=True
+                    st.success(f"Indexed {f.name} ({meta['chunks_indexed']} chunks)")
+                except Exception as exc:
+                    st.error(f"Could not index {f.name}: {exc}")
+    if st.button("Reset evidence index"):
+        pipeline.reset_documents()
+        for k in list(st.session_state):
+            if str(k).startswith("uploaded_"): del st.session_state[k]
+        st.rerun()
     st.divider()
+    if st.button("Run deterministic analysis", type="primary"):
+        try:
+            pipeline.analyze()
+            st.success("Analysis completed")
+        except Exception as exc:
+            st.error(f"Analysis failed: {exc}")
 
-    st.markdown(
-        "### DATA INGESTION"
-    )
-
-    uploaded_pdf = st.file_uploader(
-        "Upload company document",
-        type=["pdf"],
-        help=(
-            "Upload annual reports, contracts, "
-            "financial statements or other PDFs."
-        ),
-    )
-
-    if uploaded_pdf:
-
-        upload_dir = ROOT / "data" / "raw"
-        upload_dir.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        file_path = (
-            upload_dir /
-            uploaded_pdf.name
-        )
-
-        file_path.write_bytes(
-            uploaded_pdf.getbuffer()
-        )
-
-        if st.button(
-            "Index document",
-            type="primary",
-            width="stretch",
-        ):
-
-            try:
-
-                count = pipeline.add_pdf(
-                    str(file_path)
-                )
-
-                st.success(
-                    f"{count} document chunks indexed."
-                )
-
-            except Exception as exc:
-
-                st.error(
-                    f"Document indexing failed: {exc}"
-                )
-
-    st.divider()
-
-    st.caption(
-        "DealLens v0.2 • Analyst Workspace"
-    )
-
-
-# ============================================================
-# ANALYSIS BUTTON
-# ============================================================
-
-if not st.session_state.analysis_complete:
-
-    st.markdown(
-        """
-        <div class="ai-panel">
-
-            <div class="ai-label">
-                FIRST-PASS DUE DILIGENCE
-            </div>
-
-            <h2>
-                Understand the target company.
-            </h2>
-
-            <p>
-                Run the deterministic financial, anomaly,
-                dependency and risk engines before starting
-                AI investigations.
-            </p>
-
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    if st.button(
-        "Run DealLens Analysis",
-        type="primary",
-        width="stretch",
-    ):
-
-        with st.spinner(
-            "Running financial and risk intelligence..."
-        ):
-
-            try:
-
-                pipeline.analyze(
-                    str(
-                        ROOT / "data" / "raw"
-                    )
-                )
-
-                st.session_state.analysis_complete = True
-
-                st.rerun()
-
-            except Exception as exc:
-
-                st.error(
-                    f"Analysis failed: {exc}"
-                )
-
+S=pipeline.STATE
+if not S:
+    st.info("Generate sample data with `python data/generate_sample_data.py`, then click Run deterministic analysis. You can also upload evidence for document investigation.")
+    if pipeline.DOCS["files"]:
+        st.write("Indexed evidence:", pipeline.DOCS["files"])
     st.stop()
 
+findings=S.get("findings",[])
+severity_counts=pd.Series([f.get("severity") for f in findings]).value_counts().to_dict()
 
-# ============================================================
-# STATE
-# ============================================================
+m=st.columns(4)
+m[0].metric("Findings", len(findings))
+m[1].metric("High", severity_counts.get("High",0))
+m[2].metric("Medium", severity_counts.get("Medium",0))
+m[3].metric("Evidence files", len(pipeline.DOCS["files"]))
 
-state = get_state()
+tabs=st.tabs(["Overview","Risk Intelligence","Financials","Dependencies","Scenario Lab","Evidence Search","AI Investigation","AI Tools","Evaluation"])
 
-findings = get_findings()
+with tabs[0]:
+    st.subheader("Investigation overview")
+    for f in findings[:8]:
+        with st.expander(f"{f['severity']} · #{f['rank']} · {f['title']}"):
+            st.write(f['detail'])
+            st.caption(f"Evidence: {f['evidence']}")
+            st.write("Management questions")
+            for q in f['questions']: st.write("- "+q)
+    st.download_button("Download risk report", to_markdown(findings), "deallens_report.md", "text/markdown")
 
+with tabs[1]:
+    st.subheader("Risk intelligence")
+    for f in findings:
+        with st.expander(f"#{f['rank']} {f['severity']} — {f['title']}"):
+            st.write(f['detail']); st.json(f.get('evidence',[])); st.write("Questions:")
+            for q in f.get('questions',[]): st.write("- "+q)
 
-# ============================================================
-# OVERVIEW
-# ============================================================
+with tabs[2]:
+    r=S['ratios']
+    st.dataframe(r.set_index('year').T.style.format('{:,.2f}'), use_container_width=True)
+    st.plotly_chart(px.line(r,x='year',y=['dso','dio','dpo'],markers=True,title='Working-capital days'),use_container_width=True)
+    st.subheader("AI financial copilot")
+    fq=st.text_input("Ask about the financials", "What financial trend should an acquirer investigate first?")
+    if st.button("Run financial copilot"):
+        try:
+            from ai_engine.financial_copilot import FinancialCopilot
+            st.markdown(FinancialCopilot().answer(fq,S))
+        except Exception as exc: st.error(str(exc))
 
-if st.session_state.page == "Overview":
+with tabs[3]:
+    c1,c2=st.columns(2)
+    c1.plotly_chart(px.pie(S['cust'],names='customer',values='revenue',title='Revenue concentration'),use_container_width=True)
+    c2.plotly_chart(px.pie(S['sup'],names='supplier',values='procurement',title='Supplier concentration'),use_container_width=True)
+    st.dataframe(S['scored_tx'].head(25),use_container_width=True)
 
-    st.markdown(
-        '<div class="page-title">Deal Overview</div>',
-        unsafe_allow_html=True,
-    )
+with tabs[4]:
+    f=S['fin'].sort_values('year').iloc[-1]
+    base=Base(f.revenue,f.cogs,f.operating_expenses,f.depreciation,f.interest_expense,f.capex,f.total_debt,f.interest_expense+S['debt']['principal'].sum()*0.2)
+    a,b,c=st.columns(3); rc=a.slider('Revenue change %',-40,40,-15)/100; oc=b.slider('Opex change %',-20,30,8)/100; lost=c.slider('Lost customer revenue (Cr)',0,100,0)*1e7
+    sc=Scenario(revenue_change=rc,opex_change=oc,lost_customer_revenue=lost); o=run_scenario(base,sc)
+    mm=st.columns(4); mm[0].metric('Revenue (Cr)',f"{o['revenue']/1e7:,.0f}"); mm[1].metric('EBITDA (Cr)',f"{o['ebitda']/1e7:,.0f}"); mm[2].metric('FCF (Cr)',f"{o['free_cash_flow']/1e7:,.0f}"); mm[3].metric('Debt/EBITDA',f"{o['debt_to_ebitda']:.2f}x")
+    sens=pd.DataFrame(sensitivity(base,sc,'revenue_change',[x/100 for x in range(-30,31,5)]))
+    st.plotly_chart(px.line(sens,x='revenue_change',y='ebitda',title='EBITDA sensitivity'),use_container_width=True)
 
-    st.markdown(
-        '<div class="page-subtitle">'
-        'Executive view of financial performance, '
-        'risk exposure and investigation priorities.'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-    # --------------------------------------------------------
-    # KPI ROW
-    # --------------------------------------------------------
-
-    high_count = sum(
-        finding_severity(f) == "HIGH"
-        for f in findings
-    )
-
-    medium_count = sum(
-        finding_severity(f) == "MEDIUM"
-        for f in findings
-    )
-
-    doc_count = len(
-        pipeline.DOCS.get(
-            "chunks",
-            [],
-        )
-    )
-
-    c1, c2, c3, c4 = st.columns(4)
-
-    with c1:
-
-        st.markdown(
-            f"""
-            <div class="kpi-card">
-                <div class="kpi-label">
-                    Total Findings
-                </div>
-
-                <div class="kpi-value">
-                    {len(findings)}
-                </div>
-
-                <div class="kpi-description">
-                    Issues requiring review
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    with c2:
-
-        st.markdown(
-            f"""
-            <div class="kpi-card">
-                <div class="kpi-label">
-                    High Priority
-                </div>
-
-                <div class="kpi-value">
-                    {high_count}
-                </div>
-
-                <div class="kpi-description">
-                    Immediate investigation
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    with c3:
-
-        st.markdown(
-            f"""
-            <div class="kpi-card">
-                <div class="kpi-label">
-                    Medium Priority
-                </div>
-
-                <div class="kpi-value">
-                    {medium_count}
-                </div>
-
-                <div class="kpi-description">
-                    Requires analyst review
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    with c4:
-
-        st.markdown(
-            f"""
-            <div class="kpi-card">
-                <div class="kpi-label">
-                    Evidence Chunks
-                </div>
-
-                <div class="kpi-value">
-                    {doc_count}
-                </div>
-
-                <div class="kpi-description">
-                    Indexed document evidence
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    st.write("")
-
-    # --------------------------------------------------------
-    # PRIORITY FINDINGS
-    # --------------------------------------------------------
-
-    st.markdown(
-        """
-        <div class="section-card">
-
-            <div class="section-title">
-                Priority Investigations
-            </div>
-
-            <div class="section-description">
-                Highest-value findings surfaced by
-                DealLens deterministic analysis.
-            </div>
-
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    if not findings:
-
-        st.info(
-            "No findings are currently available."
-        )
-
+with tabs[5]:
+    st.subheader("Evidence search")
+    if not pipeline.DOCS['index']:
+        st.info("Upload a PDF, CSV, Excel, TXT, Markdown, JSON or DOCX file first.")
     else:
-
-        for f in findings[:5]:
-
-            severity = finding_severity(f)
-
-            if severity == "HIGH":
-                css_class = "risk-high"
-                badge = "badge-high"
-
-            elif severity == "LOW":
-                css_class = "risk-low"
-                badge = "badge-low"
-
-            else:
-                css_class = "risk-medium"
-                badge = "badge-medium"
-
-            st.markdown(
-                f"""
-                <div class="risk-card {css_class}">
-
-                    <span class="risk-badge {badge}">
-                        {severity}
-                    </span>
-
-                    <h3>
-                        {finding_title(f)}
-                    </h3>
-
-                    <p>
-                        {finding_description(f)}
-                    </p>
-
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-
-# ============================================================
-# RISK INTELLIGENCE
-# ============================================================
-
-elif st.session_state.page == "Risk Intelligence":
-
-    st.markdown(
-        '<div class="page-title">Risk Intelligence</div>',
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        '<div class="page-subtitle">'
-        'Evidence-backed risk register for analyst review.'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-    if not findings:
-
-        st.info(
-            "No risk findings available."
-        )
-
-    else:
-
-        for index, f in enumerate(findings, 1):
-
-            severity = finding_severity(f)
-
-            if severity == "HIGH":
-                css_class = "risk-high"
-                badge = "badge-high"
-
-            elif severity == "LOW":
-                css_class = "risk-low"
-                badge = "badge-low"
-
-            else:
-                css_class = "risk-medium"
-                badge = "badge-medium"
-
-            st.markdown(
-                f"""
-                <div class="risk-card {css_class}">
-
-                    <span class="risk-badge {badge}">
-                        {severity}
-                    </span>
-
-                    <h3>
-                        Risk #{index} — {finding_title(f)}
-                    </h3>
-
-                    <p>
-                        {finding_description(f)}
-                    </p>
-
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-
-# ============================================================
-# FINANCIAL INTELLIGENCE
-# ============================================================
-
-elif st.session_state.page == "Financial Intelligence":
-
-    st.markdown(
-        '<div class="page-title">Financial Intelligence</div>',
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        '<div class="page-subtitle">'
-        'Deterministic financial analysis and historical trends.'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-    financials = state.get(
-        "financials"
-    )
-
-    if isinstance(
-        financials,
-        pd.DataFrame,
-    ):
-
-        financials = clean_columns(
-            financials
-        )
-
-        st.dataframe(
-            financials,
-            width="stretch",
-            hide_index=True,
-        )
-
-        numeric_cols = financials.select_dtypes(
-            include="number"
-        ).columns.tolist()
-
-        if (
-            len(numeric_cols) >= 2
-            and "year" in financials.columns
-        ):
-
-            value_col = numeric_cols[0]
-
-            fig = px.line(
-                financials,
-                x="year",
-                y=value_col,
-                markers=True,
-                title=f"{value_col.title()} Trend",
-            )
-
-            fig.update_layout(
-                template="plotly_white",
-                height=400,
-            )
-
-            st.plotly_chart(
-                fig,
-                width="stretch",
-            )
-
-    else:
-
-        st.info(
-            "Financial dataset is not available "
-            "in the current analysis state."
-        )
-
-
-# ============================================================
-# DEPENDENCIES
-# ============================================================
-
-elif st.session_state.page == "Dependencies":
-
-    st.markdown(
-        '<div class="page-title">Dependency Intelligence</div>',
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        '<div class="page-subtitle">'
-        'Customer, supplier and business relationship exposure.'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-    dependency_data = state.get(
-        "dependencies"
-    )
-
-    if isinstance(
-        dependency_data,
-        pd.DataFrame,
-    ):
-
-        st.dataframe(
-            dependency_data,
-            width="stretch",
-            hide_index=True,
-        )
-
-    elif dependency_data:
-
-        st.json(
-            dependency_data
-        )
-
-    else:
-
-        st.info(
-            "Dependency analysis data is not available "
-            "in the current state."
-        )
-
-
-# ============================================================
-# TRANSACTIONS
-# ============================================================
-
-elif st.session_state.page == "Transactions":
-
-    st.markdown(
-        '<div class="page-title">Transaction Intelligence</div>',
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        '<div class="page-subtitle">'
-        'Unusual transaction patterns requiring investigation.'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-    transactions = state.get(
-        "transactions"
-    )
-
-    if isinstance(
-        transactions,
-        pd.DataFrame,
-    ):
-
-        st.dataframe(
-            transactions,
-            width="stretch",
-            hide_index=True,
-        )
-
-    elif transactions:
-
-        st.json(
-            transactions
-        )
-
-    else:
-
-        st.info(
-            "Transaction analysis is not available."
-        )
-
-
-# ============================================================
-# SCENARIO LAB
-# ============================================================
-
-elif st.session_state.page == "Scenario Lab":
-
-    st.markdown(
-        '<div class="page-title">Scenario Lab</div>',
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        '<div class="page-subtitle">'
-        'Stress-test business assumptions and financial exposure.'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-
-        revenue_change = st.slider(
-            "Revenue change",
-            min_value=-50,
-            max_value=50,
-            value=0,
-            step=5,
-            format="%d%%",
-        )
-
-        cost_change = st.slider(
-            "Operating cost change",
-            min_value=-30,
-            max_value=50,
-            value=0,
-            step=5,
-            format="%d%%",
-        )
-
-    with col2:
-
-        customer_loss = st.slider(
-            "Major customer revenue loss",
-            min_value=0,
-            max_value=50,
-            value=0,
-            step=5,
-            format="%d%%",
-        )
-
-        debt_change = st.slider(
-            "Debt change",
-            min_value=-20,
-            max_value=100,
-            value=0,
-            step=10,
-            format="%d%%",
-        )
-
-    st.markdown(
-        """
-        <div class="section-card">
-
-        <div class="section-title">
-            Scenario Assumptions
-        </div>
-
-        <div class="section-description">
-            These controls are currently an interactive
-            stress-testing layer. We will connect them to
-            the full finance engine in Phase 5.
-        </div>
-
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    s1, s2, s3, s4 = st.columns(4)
-
-    s1.metric(
-        "Revenue",
-        f"{100 + revenue_change}%",
-        f"{revenue_change:+d}%",
-    )
-
-    s2.metric(
-        "Operating Costs",
-        f"{100 + cost_change}%",
-        f"{cost_change:+d}%",
-    )
-
-    s3.metric(
-        "Customer Exposure",
-        f"{customer_loss}%",
-        f"{customer_loss:+d}%",
-    )
-
-    s4.metric(
-        "Debt",
-        f"{100 + debt_change}%",
-        f"{debt_change:+d}%",
-    )
-
-
-# ============================================================
-# DOCUMENTS
-# ============================================================
-
-elif st.session_state.page == "Documents":
-
-    st.markdown(
-        '<div class="page-title">Document Intelligence</div>',
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        '<div class="page-subtitle">'
-        'Semantic document search with evidence references.'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-    chunks = pipeline.DOCS.get(
-        "chunks",
-        [],
-    )
-
-    index = pipeline.DOCS.get(
-        "index"
-    )
-
-    c1, c2 = st.columns(2)
-
-    c1.metric(
-        "Indexed Chunks",
-        len(chunks),
-    )
-
-    c2.metric(
-        "Vector Index",
-        "Ready" if index else "Not initialized",
-    )
-
-    if index:
-
-        query = st.text_input(
-            "Search company evidence",
-            placeholder=(
-                "e.g. Which contracts expire soon?"
-            ),
-        )
-
-        if query:
-
-            results = index.search(
-                query,
-                k=5,
-            )
-
-            if results:
-
-                for result in results:
-
-                    st.markdown(
-                        f"""
-                        <div class="evidence-card">
-
-                            <div class="evidence-source">
-                                {result.get("source", "Unknown source")}
-                            </div>
-
-                            <div class="evidence-page">
-                                Page {result.get("page", 0)}
-                                · Relevance
-                                {safe_float(result.get("score")):.2f}
-                            </div>
-
-                            <div class="evidence-text">
-                                {result.get("text", "")}
-                            </div>
-
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-
-            else:
-
-                st.info(
-                    "No relevant evidence found."
-                )
-
-    else:
-
-        st.info(
-            "Upload and index a PDF to activate "
-            "semantic document search."
-        )
-
-
-# ============================================================
-# AI INVESTIGATION
-# ============================================================
-
-elif st.session_state.page == "AI Investigation":
-
-    st.markdown(
-        '<div class="page-title">AI Investigation</div>',
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        '<div class="page-subtitle">'
-        'Evidence-first investigation using DealLens tools, '
-        'RAG and Gemini.'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        """
-        <div class="ai-panel">
-
-            <div class="ai-label">
-                DEAL LENS AI ANALYST
-            </div>
-
-            <h2>
-                Investigate the target company.
-            </h2>
-
-            <p>
-                Ask questions about financial performance,
-                anomalies, dependencies, contracts or
-                document evidence.
-            </p>
-
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    question = st.text_area(
-        "Investigation question",
-        placeholder=(
-            "Example: What are the most important "
-            "financial and contractual risks that "
-            "an acquirer should investigate?"
-        ),
-        height=120,
-    )
-
-    if st.button(
-        "Run AI Investigation",
-        type="primary",
-        width="stretch",
-    ):
-
-        if not question.strip():
-
-            st.warning(
-                "Enter an investigation question first."
-            )
-
-        else:
-
+        q=st.text_input('Search indexed evidence')
+        if q:
+            for h in pipeline.DOCS['index'].search(q,8):
+                st.markdown(f"**{h['source']} · page {h.get('page',1)} · {h.get('location','')} · score {h['score']:.2f}**")
+                st.caption(h['text'][:1000])
+
+with tabs[6]:
+    st.subheader("Agentic investigation")
+    q=st.text_area('Investigation question','Find the top financial risks an acquirer should investigate and explain the evidence.')
+    if st.button('Investigate with tools'):
+        try:
+            from agent.agent import investigate
+            from agent.tools import Toolbox
+            result=investigate(q,Toolbox(S,pipeline.DOCS['index']))
+            st.markdown(result)
+        except Exception as exc: st.error(str(exc))
+
+with tabs[7]:
+    st.subheader("AI evidence tools")
+    tool_tab1,tool_tab2,tool_tab3=st.tabs(['Schema Agent','Anomaly Explainer','Evidence Verifier'])
+    with tool_tab1:
+        st.write('Upload a CSV/Excel file and inspect its deterministic profile plus AI interpretation.')
+        sf=st.file_uploader('CSV/Excel for schema analysis',type=['csv','xlsx','xls'],key='schema_file')
+        if sf and st.button('Analyze schema'):
             try:
+                import io
+                if sf.name.lower().endswith('.csv'): df=pd.read_csv(io.BytesIO(sf.getvalue()))
+                else: df=pd.read_excel(io.BytesIO(sf.getvalue()),sheet_name=0)
+                from ai_engine.schema_agent import SchemaAgent
+                st.json(SchemaAgent().infer(df))
+            except Exception as exc: st.error(str(exc))
+    with tool_tab2:
+        if 'scored_tx' in S:
+            st.dataframe(S['scored_tx'].sort_values('anomaly_score',ascending=False).head(15),use_container_width=True)
+            if st.button('Explain unusual transactions'):
+                try:
+                    from ai_engine.anomaly_explainer import AnomalyExplainer
+                    st.markdown(AnomalyExplainer().explain(S['scored_tx'].sort_values('anomaly_score',ascending=False).head(15)))
+                except Exception as exc: st.error(str(exc))
+    with tool_tab3:
+        claim=st.text_area('Claim to verify','The target has a material customer concentration risk.')
+        if st.button('Verify claim'):
+            try:
+                evidence=pipeline.DOCS['index'].search(claim,5) if pipeline.DOCS['index'] else []
+                from ai_engine.evidence_verifier import EvidenceVerifier
+                st.json(EvidenceVerifier().verify(claim,evidence))
+                st.write('Retrieved evidence')
+                for e in evidence: st.caption(f"{e['source']} p.{e.get('page',1)} — {e['text'][:500]}")
+            except Exception as exc: st.error(str(exc))
 
-                from agent.agent import investigate
-                from agent.tools import Toolbox
-
-                toolbox = Toolbox(
-                    doc_index=pipeline.DOCS.get(
-                        "index"
-                    ),
-                    state=pipeline.STATE,
-                )
-
-                with st.spinner(
-                    "DealLens is investigating evidence..."
-                ):
-
-                    answer = investigate(
-                        question,
-                        toolbox,
-                    )
-
-                st.markdown(
-                    """
-                    <div class="section-card">
-
-                        <div class="section-title">
-                            Investigation Result
-                        </div>
-
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
-
-                st.markdown(answer)
-
-            except Exception as exc:
-
-                st.error(
-                    f"AI investigation failed: {exc}"
-                )
-
-
-# ============================================================
-# FOOTER
-# ============================================================
-
-st.divider()
-
-st.caption(
-    "DealLens AI • Evidence-first M&A intelligence • "
-    "Deterministic analysis + ML signals + GenAI investigation"
-)
+with tabs[8]:
+    st.subheader("AI evaluation checks")
+    st.write("Small regression checks for evidence-first behavior.")
+    if st.button('Run evaluation'):
+        try:
+            from ai_engine.evaluator import evaluate
+            from agent.agent import investigate
+            from agent.tools import Toolbox
+            rows=evaluate(lambda q: investigate(q,Toolbox(S,pipeline.DOCS['index']),max_steps=4))
+            st.dataframe(pd.DataFrame(rows),use_container_width=True)
+        except Exception as exc: st.error(str(exc))
