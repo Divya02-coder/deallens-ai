@@ -32,6 +32,27 @@ class Toolbox:
     def query_knowledge_graph(self, rel: str | None = None, min_share: float = 0.0):
         return query(self.graph, self.company, rel, min_share)
 
+    def analyze_contracts(self):
+        """Return structured contract exposure signals without changing risk-engine logic."""
+        contracts = self.s.get("contracts")
+        if contracts is None or contracts.empty:
+            return {"contracts": [], "count": 0}
+        rows = []
+        today = __import__("pandas").Timestamp.today().normalize()
+        for _, r in contracts.iterrows():
+            end = __import__("pandas").to_datetime(r.get("end_date"), errors="coerce")
+            days = int((end - today).days) if __import__("pandas").notna(end) else None
+            rows.append({
+                "contract_id": r.get("contract_id"),
+                "counterparty": r.get("counterparty"),
+                "type": r.get("type"),
+                "end_date": str(r.get("end_date")),
+                "days_to_expiry": days,
+                "change_of_control": bool(r.get("change_of_control", False)),
+                "value": float(r.get("value", 0)) if str(r.get("value", "")) not in ("", "nan") else None,
+            })
+        return {"contracts": rows, "count": len(rows)}
+
     def search_documents(self, query_text: str, k: int = 5):
         if not self.docs:
             return {"error": "No documents indexed."}
@@ -65,6 +86,7 @@ TOOL_SCHEMAS = [
     {"name":"analyze_customers","description":"Return customer concentration metrics.","parameters":{"type":"OBJECT","properties":{}}},
     {"name":"analyze_suppliers","description":"Return supplier concentration metrics.","parameters":{"type":"OBJECT","properties":{}}},
     {"name":"query_knowledge_graph","description":"Query customer, supplier and debt relationships.","parameters":{"type":"OBJECT","properties":{"rel":{"type":"STRING"},"min_share":{"type":"NUMBER"}}}},
+    {"name":"analyze_contracts","description":"Inspect contract expiry, value and change-of-control exposure.","parameters":{"type":"OBJECT","properties":{}}},
     {"name":"search_documents","description":"Search uploaded evidence and return source/page/location metadata.","parameters":{"type":"OBJECT","properties":{"query_text":{"type":"STRING"},"k":{"type":"INTEGER"}},"required":["query_text"]}},
     {"name":"verify_claim","description":"Check a claim against retrieved document evidence.","parameters":{"type":"OBJECT","properties":{"claim":{"type":"STRING"},"k":{"type":"INTEGER"}},"required":["claim"]}},
     {"name":"get_transaction_anomalies","description":"Return highest-scoring unusual transactions from the deterministic anomaly model.","parameters":{"type":"OBJECT","properties":{"limit":{"type":"INTEGER"}}}},

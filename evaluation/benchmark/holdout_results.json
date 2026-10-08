@@ -1,0 +1,15 @@
+{
+  "benchmark": "independent_holdout",
+  "cases": 30,
+  "true_positives": 24,
+  "false_positives": 0,
+  "false_negatives": 0,
+  "true_negatives": 6,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "accuracy": 1.0,
+  "evidence_coverage": 1.0,
+  "avg_runtime_seconds": 0.30557205332831167,
+  "failures": []
+}

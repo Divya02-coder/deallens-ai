@@ -10,7 +10,15 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 
 class DocIndex:
-    def __init__(self, chunks: list[dict]):
+    def __init__(
+        self,
+        chunks,
+        persist_path=None,
+        collection_name="documents",
+        **kwargs,
+    ):
+        self.persist_path = persist_path
+        self.collection_name = collection_name
         self.chunks = list(chunks or [])
         texts = [str(c.get("text", "")) for c in self.chunks]
         self.vec = TfidfVectorizer(stop_words="english", ngram_range=(1, 2), max_features=20000)

@@ -1,5 +1,5 @@
 contract_id,counterparty,type,value,end_date,change_of_control
-A17,ABC Corp,customer,920000000.0,2027-02-02,True
-B02,Beta Retail,customer,410000000.0,2028-09-04,False
-C09,Gamma Infra,customer,270000000.0,2027-11-09,False
-D11,DEF Ltd,supplier,770000000.0,2028-02-17,True
+A17,ABC Corp,customer,920000000.0,2027-02-05,True
+B02,Beta Retail,customer,410000000.0,2028-09-07,False
+C09,Gamma Infra,customer,270000000.0,2027-11-12,False
+D11,DEF Ltd,supplier,770000000.0,2028-02-20,True

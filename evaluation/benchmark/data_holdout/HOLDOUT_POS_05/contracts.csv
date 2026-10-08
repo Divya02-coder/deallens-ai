@@ -1,0 +1,3 @@
+contract_id,counterparty,type,value,end_date,change_of_control
+A01,Customer A,customer,919903448.7654276,2027-02-16,False
+B02,Supplier A,supplier,540863296.5537078,2028-11-22,False

@@ -1,0 +1,357 @@
+{
+  "cases": [
+    {
+      "case_id": "POS_01",
+      "expected": "cash_conversion",
+      "detected": [
+        "cash_conversion"
+      ],
+      "outcome": "TP",
+      "runtime": 0.4553903000196442
+    },
+    {
+      "case_id": "POS_02",
+      "expected": "customer_concentration",
+      "detected": [
+        "customer_concentration"
+      ],
+      "outcome": "TP",
+      "runtime": 0.28376140003092587
+    },
+    {
+      "case_id": "POS_03",
+      "expected": "supplier_concentration",
+      "detected": [
+        "supplier_concentration"
+      ],
+      "outcome": "TP",
+      "runtime": 0.322229299985338
+    },
+    {
+      "case_id": "POS_04",
+      "expected": "debt_maturity",
+      "detected": [
+        "debt_maturity"
+      ],
+      "outcome": "TP",
+      "runtime": 0.26957099995343015
+    },
+    {
+      "case_id": "POS_05",
+      "expected": "contract_expiry",
+      "detected": [
+        "contract_expiry"
+      ],
+      "outcome": "TP",
+      "runtime": 0.259681899973657
+    },
+    {
+      "case_id": "POS_06",
+      "expected": "threshold_clustering",
+      "detected": [
+        "threshold_clustering"
+      ],
+      "outcome": "TP",
+      "runtime": 0.2537753999931738
+    },
+    {
+      "case_id": "POS_07",
+      "expected": "cash_conversion",
+      "detected": [
+        "cash_conversion"
+      ],
+      "outcome": "TP",
+      "runtime": 0.31829389999620616
+    },
+    {
+      "case_id": "POS_08",
+      "expected": "customer_concentration",
+      "detected": [
+        "customer_concentration"
+      ],
+      "outcome": "TP",
+      "runtime": 0.2568139999639243
+    },
+    {
+      "case_id": "POS_09",
+      "expected": "supplier_concentration",
+      "detected": [
+        "supplier_concentration"
+      ],
+      "outcome": "TP",
+      "runtime": 0.24935079994611442
+    },
+    {
+      "case_id": "POS_10",
+      "expected": "debt_maturity",
+      "detected": [
+        "debt_maturity"
+      ],
+      "outcome": "TP",
+      "runtime": 0.23758119996637106
+    },
+    {
+      "case_id": "POS_11",
+      "expected": "contract_expiry",
+      "detected": [
+        "contract_expiry"
+      ],
+      "outcome": "TP",
+      "runtime": 0.27828149998094887
+    },
+    {
+      "case_id": "POS_12",
+      "expected": "threshold_clustering",
+      "detected": [
+        "threshold_clustering"
+      ],
+      "outcome": "TP",
+      "runtime": 0.35722880001412705
+    },
+    {
+      "case_id": "POS_13",
+      "expected": "cash_conversion",
+      "detected": [
+        "cash_conversion"
+      ],
+      "outcome": "TP",
+      "runtime": 0.3138431999832392
+    },
+    {
+      "case_id": "POS_14",
+      "expected": "customer_concentration",
+      "detected": [
+        "customer_concentration"
+      ],
+      "outcome": "TP",
+      "runtime": 0.39819370000623167
+    },
+    {
+      "case_id": "POS_15",
+      "expected": "supplier_concentration",
+      "detected": [
+        "supplier_concentration"
+      ],
+      "outcome": "TP",
+      "runtime": 0.2754290000302717
+    },
+    {
+      "case_id": "POS_16",
+      "expected": "debt_maturity",
+      "detected": [
+        "debt_maturity"
+      ],
+      "outcome": "TP",
+      "runtime": 0.2713396999752149
+    },
+    {
+      "case_id": "POS_17",
+      "expected": "contract_expiry",
+      "detected": [
+        "contract_expiry"
+      ],
+      "outcome": "TP",
+      "runtime": 0.2874378000269644
+    },
+    {
+      "case_id": "POS_18",
+      "expected": "threshold_clustering",
+      "detected": [
+        "threshold_clustering"
+      ],
+      "outcome": "TP",
+      "runtime": 0.2483492000028491
+    },
+    {
+      "case_id": "POS_19",
+      "expected": "cash_conversion",
+      "detected": [
+        "cash_conversion"
+      ],
+      "outcome": "TP",
+      "runtime": 0.26573550002649426
+    },
+    {
+      "case_id": "POS_20",
+      "expected": "customer_concentration",
+      "detected": [
+        "customer_concentration"
+      ],
+      "outcome": "TP",
+      "runtime": 0.2840600000345148
+    },
+    {
+      "case_id": "POS_21",
+      "expected": "supplier_concentration",
+      "detected": [
+        "supplier_concentration"
+      ],
+      "outcome": "TP",
+      "runtime": 0.25606210000114515
+    },
+    {
+      "case_id": "POS_22",
+      "expected": "debt_maturity",
+      "detected": [
+        "debt_maturity"
+      ],
+      "outcome": "TP",
+      "runtime": 0.2540281999972649
+    },
+    {
+      "case_id": "POS_23",
+      "expected": "contract_expiry",
+      "detected": [
+        "contract_expiry"
+      ],
+      "outcome": "TP",
+      "runtime": 0.2591315000317991
+    },
+    {
+      "case_id": "POS_24",
+      "expected": "threshold_clustering",
+      "detected": [
+        "threshold_clustering"
+      ],
+      "outcome": "TP",
+      "runtime": 0.24726440000813454
+    },
+    {
+      "case_id": "POS_25",
+      "expected": "cash_conversion",
+      "detected": [
+        "cash_conversion"
+      ],
+      "outcome": "TP",
+      "runtime": 0.2615156999672763
+    },
+    {
+      "case_id": "POS_26",
+      "expected": "customer_concentration",
+      "detected": [
+        "customer_concentration"
+      ],
+      "outcome": "TP",
+      "runtime": 0.2698800000362098
+    },
+    {
+      "case_id": "POS_27",
+      "expected": "supplier_concentration",
+      "detected": [
+        "supplier_concentration"
+      ],
+      "outcome": "TP",
+      "runtime": 0.26224399998318404
+    },
+    {
+      "case_id": "POS_28",
+      "expected": "debt_maturity",
+      "detected": [
+        "debt_maturity"
+      ],
+      "outcome": "TP",
+      "runtime": 0.2875628999900073
+    },
+    {
+      "case_id": "POS_29",
+      "expected": "contract_expiry",
+      "detected": [
+        "contract_expiry"
+      ],
+      "outcome": "TP",
+      "runtime": 0.301024199987296
+    },
+    {
+      "case_id": "POS_30",
+      "expected": "threshold_clustering",
+      "detected": [
+        "threshold_clustering"
+      ],
+      "outcome": "TP",
+      "runtime": 0.3885100999614224
+    },
+    {
+      "case_id": "NEG_01",
+      "expected": null,
+      "detected": [],
+      "outcome": "TN",
+      "runtime": 0.27499489998444915
+    },
+    {
+      "case_id": "NEG_02",
+      "expected": null,
+      "detected": [],
+      "outcome": "TN",
+      "runtime": 0.24478449998423457
+    },
+    {
+      "case_id": "NEG_03",
+      "expected": null,
+      "detected": [],
+      "outcome": "TN",
+      "runtime": 0.240735900006257
+    },
+    {
+      "case_id": "NEG_04",
+      "expected": null,
+      "detected": [],
+      "outcome": "TN",
+      "runtime": 0.2776387999765575
+    },
+    {
+      "case_id": "NEG_05",
+      "expected": null,
+      "detected": [],
+      "outcome": "TN",
+      "runtime": 0.2690071000251919
+    },
+    {
+      "case_id": "NEG_06",
+      "expected": null,
+      "detected": [],
+      "outcome": "TN",
+      "runtime": 0.25720960000762716
+    },
+    {
+      "case_id": "NEG_07",
+      "expected": null,
+      "detected": [],
+      "outcome": "TN",
+      "runtime": 0.2493657000013627
+    },
+    {
+      "case_id": "NEG_08",
+      "expected": null,
+      "detected": [],
+      "outcome": "TN",
+      "runtime": 0.2517997000250034
+    },
+    {
+      "case_id": "NEG_09",
+      "expected": null,
+      "detected": [],
+      "outcome": "TN",
+      "runtime": 0.25086989998817444
+    },
+    {
+      "case_id": "NEG_10",
+      "expected": null,
+      "detected": [],
+      "outcome": "TN",
+      "runtime": 0.2538943000254221
+    }
+  ],
+  "metrics": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "accuracy": 1.0,
+    "avg_runtime": 0.2810967774974415
+  },
+  "confusion_matrix": {
+    "TP": 30,
+    "FP": 0,
+    "FN": 0,
+    "TN": 10
+  }
+}

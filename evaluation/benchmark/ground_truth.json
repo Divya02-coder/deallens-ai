@@ -1,0 +1,202 @@
+[
+  {
+    "case_id": "POS_01",
+    "risk_present": true,
+    "risk_type": "cash_conversion"
+  },
+  {
+    "case_id": "POS_02",
+    "risk_present": true,
+    "risk_type": "customer_concentration"
+  },
+  {
+    "case_id": "POS_03",
+    "risk_present": true,
+    "risk_type": "supplier_concentration"
+  },
+  {
+    "case_id": "POS_04",
+    "risk_present": true,
+    "risk_type": "debt_maturity"
+  },
+  {
+    "case_id": "POS_05",
+    "risk_present": true,
+    "risk_type": "contract_expiry"
+  },
+  {
+    "case_id": "POS_06",
+    "risk_present": true,
+    "risk_type": "threshold_clustering"
+  },
+  {
+    "case_id": "POS_07",
+    "risk_present": true,
+    "risk_type": "cash_conversion"
+  },
+  {
+    "case_id": "POS_08",
+    "risk_present": true,
+    "risk_type": "customer_concentration"
+  },
+  {
+    "case_id": "POS_09",
+    "risk_present": true,
+    "risk_type": "supplier_concentration"
+  },
+  {
+    "case_id": "POS_10",
+    "risk_present": true,
+    "risk_type": "debt_maturity"
+  },
+  {
+    "case_id": "POS_11",
+    "risk_present": true,
+    "risk_type": "contract_expiry"
+  },
+  {
+    "case_id": "POS_12",
+    "risk_present": true,
+    "risk_type": "threshold_clustering"
+  },
+  {
+    "case_id": "POS_13",
+    "risk_present": true,
+    "risk_type": "cash_conversion"
+  },
+  {
+    "case_id": "POS_14",
+    "risk_present": true,
+    "risk_type": "customer_concentration"
+  },
+  {
+    "case_id": "POS_15",
+    "risk_present": true,
+    "risk_type": "supplier_concentration"
+  },
+  {
+    "case_id": "POS_16",
+    "risk_present": true,
+    "risk_type": "debt_maturity"
+  },
+  {
+    "case_id": "POS_17",
+    "risk_present": true,
+    "risk_type": "contract_expiry"
+  },
+  {
+    "case_id": "POS_18",
+    "risk_present": true,
+    "risk_type": "threshold_clustering"
+  },
+  {
+    "case_id": "POS_19",
+    "risk_present": true,
+    "risk_type": "cash_conversion"
+  },
+  {
+    "case_id": "POS_20",
+    "risk_present": true,
+    "risk_type": "customer_concentration"
+  },
+  {
+    "case_id": "POS_21",
+    "risk_present": true,
+    "risk_type": "supplier_concentration"
+  },
+  {
+    "case_id": "POS_22",
+    "risk_present": true,
+    "risk_type": "debt_maturity"
+  },
+  {
+    "case_id": "POS_23",
+    "risk_present": true,
+    "risk_type": "contract_expiry"
+  },
+  {
+    "case_id": "POS_24",
+    "risk_present": true,
+    "risk_type": "threshold_clustering"
+  },
+  {
+    "case_id": "POS_25",
+    "risk_present": true,
+    "risk_type": "cash_conversion"
+  },
+  {
+    "case_id": "POS_26",
+    "risk_present": true,
+    "risk_type": "customer_concentration"
+  },
+  {
+    "case_id": "POS_27",
+    "risk_present": true,
+    "risk_type": "supplier_concentration"
+  },
+  {
+    "case_id": "POS_28",
+    "risk_present": true,
+    "risk_type": "debt_maturity"
+  },
+  {
+    "case_id": "POS_29",
+    "risk_present": true,
+    "risk_type": "contract_expiry"
+  },
+  {
+    "case_id": "POS_30",
+    "risk_present": true,
+    "risk_type": "threshold_clustering"
+  },
+  {
+    "case_id": "NEG_01",
+    "risk_present": false,
+    "risk_type": null
+  },
+  {
+    "case_id": "NEG_02",
+    "risk_present": false,
+    "risk_type": null
+  },
+  {
+    "case_id": "NEG_03",
+    "risk_present": false,
+    "risk_type": null
+  },
+  {
+    "case_id": "NEG_04",
+    "risk_present": false,
+    "risk_type": null
+  },
+  {
+    "case_id": "NEG_05",
+    "risk_present": false,
+    "risk_type": null
+  },
+  {
+    "case_id": "NEG_06",
+    "risk_present": false,
+    "risk_type": null
+  },
+  {
+    "case_id": "NEG_07",
+    "risk_present": false,
+    "risk_type": null
+  },
+  {
+    "case_id": "NEG_08",
+    "risk_present": false,
+    "risk_type": null
+  },
+  {
+    "case_id": "NEG_09",
+    "risk_present": false,
+    "risk_type": null
+  },
+  {
+    "case_id": "NEG_10",
+    "risk_present": false,
+    "risk_type": null
+  }
+]

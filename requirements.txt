@@ -16,3 +16,4 @@ google-genai
 python-dotenv
 pytest
 httpx
+langgraph>=0.6,<2

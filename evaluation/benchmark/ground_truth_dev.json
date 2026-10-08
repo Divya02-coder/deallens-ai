@@ -1,0 +1,202 @@
+[
+  {
+    "case_id": "DEV_POS_01",
+    "risk_present": true,
+    "risk_type": "cash_conversion"
+  },
+  {
+    "case_id": "DEV_POS_02",
+    "risk_present": true,
+    "risk_type": "customer_concentration"
+  },
+  {
+    "case_id": "DEV_POS_03",
+    "risk_present": true,
+    "risk_type": "supplier_concentration"
+  },
+  {
+    "case_id": "DEV_POS_04",
+    "risk_present": true,
+    "risk_type": "debt_maturity"
+  },
+  {
+    "case_id": "DEV_POS_05",
+    "risk_present": true,
+    "risk_type": "contract_expiry"
+  },
+  {
+    "case_id": "DEV_POS_06",
+    "risk_present": true,
+    "risk_type": "threshold_clustering"
+  },
+  {
+    "case_id": "DEV_POS_07",
+    "risk_present": true,
+    "risk_type": "cash_conversion"
+  },
+  {
+    "case_id": "DEV_POS_08",
+    "risk_present": true,
+    "risk_type": "customer_concentration"
+  },
+  {
+    "case_id": "DEV_POS_09",
+    "risk_present": true,
+    "risk_type": "supplier_concentration"
+  },
+  {
+    "case_id": "DEV_POS_10",
+    "risk_present": true,
+    "risk_type": "debt_maturity"
+  },
+  {
+    "case_id": "DEV_POS_11",
+    "risk_present": true,
+    "risk_type": "contract_expiry"
+  },
+  {
+    "case_id": "DEV_POS_12",
+    "risk_present": true,
+    "risk_type": "threshold_clustering"
+  },
+  {
+    "case_id": "DEV_POS_13",
+    "risk_present": true,
+    "risk_type": "cash_conversion"
+  },
+  {
+    "case_id": "DEV_POS_14",
+    "risk_present": true,
+    "risk_type": "customer_concentration"
+  },
+  {
+    "case_id": "DEV_POS_15",
+    "risk_present": true,
+    "risk_type": "supplier_concentration"
+  },
+  {
+    "case_id": "DEV_POS_16",
+    "risk_present": true,
+    "risk_type": "debt_maturity"
+  },
+  {
+    "case_id": "DEV_POS_17",
+    "risk_present": true,
+    "risk_type": "contract_expiry"
+  },
+  {
+    "case_id": "DEV_POS_18",
+    "risk_present": true,
+    "risk_type": "threshold_clustering"
+  },
+  {
+    "case_id": "DEV_POS_19",
+    "risk_present": true,
+    "risk_type": "cash_conversion"
+  },
+  {
+    "case_id": "DEV_POS_20",
+    "risk_present": true,
+    "risk_type": "customer_concentration"
+  },
+  {
+    "case_id": "DEV_POS_21",
+    "risk_present": true,
+    "risk_type": "supplier_concentration"
+  },
+  {
+    "case_id": "DEV_POS_22",
+    "risk_present": true,
+    "risk_type": "debt_maturity"
+  },
+  {
+    "case_id": "DEV_POS_23",
+    "risk_present": true,
+    "risk_type": "contract_expiry"
+  },
+  {
+    "case_id": "DEV_POS_24",
+    "risk_present": true,
+    "risk_type": "threshold_clustering"
+  },
+  {
+    "case_id": "DEV_POS_25",
+    "risk_present": true,
+    "risk_type": "cash_conversion"
+  },
+  {
+    "case_id": "DEV_POS_26",
+    "risk_present": true,
+    "risk_type": "customer_concentration"
+  },
+  {
+    "case_id": "DEV_POS_27",
+    "risk_present": true,
+    "risk_type": "supplier_concentration"
+  },
+  {
+    "case_id": "DEV_POS_28",
+    "risk_present": true,
+    "risk_type": "debt_maturity"
+  },
+  {
+    "case_id": "DEV_POS_29",
+    "risk_present": true,
+    "risk_type": "contract_expiry"
+  },
+  {
+    "case_id": "DEV_POS_30",
+    "risk_present": true,
+    "risk_type": "threshold_clustering"
+  },
+  {
+    "case_id": "DEV_POS_31",
+    "risk_present": true,
+    "risk_type": "cash_conversion"
+  },
+  {
+    "case_id": "DEV_POS_32",
+    "risk_present": true,
+    "risk_type": "customer_concentration"
+  },
+  {
+    "case_id": "DEV_NEG_01",
+    "risk_present": false,
+    "risk_type": null
+  },
+  {
+    "case_id": "DEV_NEG_02",
+    "risk_present": false,
+    "risk_type": null
+  },
+  {
+    "case_id": "DEV_NEG_03",
+    "risk_present": false,
+    "risk_type": null
+  },
+  {
+    "case_id": "DEV_NEG_04",
+    "risk_present": false,
+    "risk_type": null
+  },
+  {
+    "case_id": "DEV_NEG_05",
+    "risk_present": false,
+    "risk_type": null
+  },
+  {
+    "case_id": "DEV_NEG_06",
+    "risk_present": false,
+    "risk_type": null
+  },
+  {
+    "case_id": "DEV_NEG_07",
+    "risk_present": false,
+    "risk_type": null
+  },
+  {
+    "case_id": "DEV_NEG_08",
+    "risk_present": false,
+    "risk_type": null
+  }
+]

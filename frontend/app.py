@@ -14,11 +14,45 @@ from backend.services import pipeline
 from risk_engine.findings import to_markdown
 from finance_engine.scenarios import Base, Scenario, run as run_scenario, sensitivity
 
-st.set_page_config(page_title="DealLens AI", page_icon="🔎", layout="wide")
-st.title("DealLens AI")
-st.caption("Evidence-first M&A due-diligence intelligence. Findings are investigation flags, not conclusions.")
+st.set_page_config(page_title="DealLens AI | M&A Intelligence", page_icon="◈", layout="wide", initial_sidebar_state="expanded")
+
+st.markdown("""
+<style>
+:root { --muted:#8ea0b8; --line:#263447; --accent:#62d9c5; }
+.stApp { background:radial-gradient(circle at 80% -10%,rgba(98,217,197,.10),transparent 32%),linear-gradient(180deg,#080d14,#0b1119 55%,#080d14); }
+.block-container { max-width:1450px; padding-top:1.5rem; padding-bottom:3rem; }
+[data-testid="stSidebar"] { background:#0a1018; border-right:1px solid var(--line); }
+.hero { padding:28px 30px; border:1px solid #243447; border-radius:22px; background:linear-gradient(135deg,rgba(19,31,45,.96),rgba(12,19,29,.92)); box-shadow:0 18px 55px rgba(0,0,0,.22); margin-bottom:18px; }
+.eyebrow { color:var(--accent); text-transform:uppercase; letter-spacing:.16em; font-size:.72rem; font-weight:700; }
+.hero h1 { font-size:2.45rem; line-height:1.05; margin:.35rem 0 .65rem; letter-spacing:-.04em; }
+.hero p { color:#9eacc0; max-width:900px; margin:0; font-size:1rem; }
+.pill { display:inline-block; padding:5px 10px; border-radius:999px; background:#122b2a; border:1px solid #23524d; color:#8be8d9; font-size:.72rem; margin:12px 6px 0 0; }
+.section-head { display:flex; align-items:center; justify-content:space-between; margin:22px 0 12px; }
+.section-head h3 { margin:0; }
+.section-head span { color:var(--muted); font-size:.8rem; }
+.metric-card { background:linear-gradient(145deg,#111b28,#0e1621); border:1px solid var(--line); border-radius:16px; padding:17px 18px; min-height:98px; }
+.metric-label { color:var(--muted); font-size:.75rem; text-transform:uppercase; letter-spacing:.08em; }
+.metric-value { font-size:1.7rem; font-weight:750; margin-top:5px; }
+.metric-delta { color:#79ddcb; font-size:.72rem; margin-top:3px; }
+.risk-card { border:1px solid var(--line); border-radius:15px; padding:16px; background:#101824; margin-bottom:12px; }
+.risk-high { border-left:4px solid #ef7777; } .risk-medium { border-left:4px solid #e8bd62; } .risk-low { border-left:4px solid #62d9c5; }
+[data-testid="stTabs"] button { color:#91a2b8; font-weight:600; }
+[data-testid="stTabs"] button[aria-selected="true"] { color:#8de7d8; }
+[data-testid="stFileUploaderDropzone"] { border:1px dashed #395069; background:#0d151f; }
+div.stButton > button { border-radius:10px; border:1px solid #31445b; background:#111c29; }
+div.stButton > button[kind="primary"] { background:linear-gradient(135deg,#1b625c,#164b58); border-color:#3b8f88; }
+[data-testid="stExpander"] { border:1px solid var(--line); border-radius:12px; background:#0f1722; }
+.status-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#62d9c5; margin-right:6px; box-shadow:0 0 10px rgba(98,217,197,.7); }
+</style>
+""", unsafe_allow_html=True)
+st.markdown("""<div class="hero"><div class="eyebrow">AI-Powered M&A Intelligence</div><h1>DealLens <span style="color:#62d9c5">AI</span></h1><p>Evidence-first due diligence that connects financial signals, contracts, dependencies and transaction anomalies into investigation-ready insights.</p><span class="pill">RAG + Agentic AI</span><span class="pill">LangGraph orchestration</span><span class="pill">Evidence traceability</span></div>""", unsafe_allow_html=True)
+st.caption("◉ Investigation flags are decision-support signals, not investment conclusions.")
 
 with st.sidebar:
+    st.markdown("### ◈ DealLens")
+    st.markdown('<span class="status-dot"></span><b>Workspace online</b>', unsafe_allow_html=True)
+    st.caption("M&A due-diligence command center")
+    st.divider()
     st.header("Deal workspace")
     uploaded = st.file_uploader("Upload evidence", type=["pdf","csv","xlsx","xls","txt","md","json","docx"], accept_multiple_files=True)
     if uploaded:
@@ -56,21 +90,28 @@ findings=S.get("findings",[])
 severity_counts=pd.Series([f.get("severity") for f in findings]).value_counts().to_dict()
 
 m=st.columns(4)
-m[0].metric("Findings", len(findings))
-m[1].metric("High", severity_counts.get("High",0))
-m[2].metric("Medium", severity_counts.get("Medium",0))
-m[3].metric("Evidence files", len(pipeline.DOCS["files"]))
+metric_data=[("Active findings",len(findings),"Deterministic risk engine"),("High severity",severity_counts.get("High",0),"Priority review"),("Medium severity",severity_counts.get("Medium",0),"Requires investigation"),("Evidence files",len(pipeline.DOCS["files"]),"Indexed for RAG")]
+for col,(label,value,sub) in zip(m,metric_data):
+    col.markdown(f'<div class="metric-card"><div class="metric-label">{label}</div><div class="metric-value">{value}</div><div class="metric-delta">{sub}</div></div>',unsafe_allow_html=True)
 
-tabs=st.tabs(["Overview","Risk Intelligence","Financials","Dependencies","Scenario Lab","Evidence Search","AI Investigation","AI Tools","Evaluation"])
+tabs=st.tabs(["Overview","Risk Intelligence","Financials","Dependencies","Scenario Lab","Evidence Search","AI Investigation","Advanced Agent","AI Tools","Evaluation"])
 
 with tabs[0]:
-    st.subheader("Investigation overview")
+    st.markdown('<div class="section-head"><h3>Investigation overview</h3><span>Prioritized signals from the current deal workspace</span></div>', unsafe_allow_html=True)
+    if findings:
+        top=findings[0]
+        sev=str(top.get("severity","low")).lower()
+        st.markdown(f'<div class="risk-card risk-{sev}"><div class="metric-label">Top priority · {top.get("severity","Unknown")}</div><h3 style="margin:.35rem 0">{top.get("title","Risk finding")}</h3><div style="color:#a7b5c7">{top.get("detail","")}</div></div>', unsafe_allow_html=True)
     for f in findings[:8]:
         with st.expander(f"{f['severity']} · #{f['rank']} · {f['title']}"):
             st.write(f['detail'])
             st.caption(f"Evidence: {f['evidence']}")
             st.write("Management questions")
             for q in f['questions']: st.write("- "+q)
+    if findings:
+        st.markdown('<div class="section-head"><h3>Risk distribution</h3><span>Severity across detected findings</span></div>', unsafe_allow_html=True)
+        rc=pd.DataFrame({"Severity":list(severity_counts.keys()),"Findings":list(severity_counts.values())})
+        st.plotly_chart(px.bar(rc,x="Severity",y="Findings",text="Findings",title=""),use_container_width=True,config={"displayModeBar":False})
     st.download_button("Download risk report", to_markdown(findings), "deallens_report.md", "text/markdown")
 
 with tabs[1]:
@@ -130,6 +171,28 @@ with tabs[6]:
         except Exception as exc: st.error(str(exc))
 
 with tabs[7]:
+    st.subheader("Advanced agentic due diligence")
+    st.caption("LangGraph orchestrates planning → specialist investigations → evidence verification → synthesis. The deterministic risk engine remains unchanged.")
+    aq=st.text_area("Due-diligence question", "Investigate the most important risks an acquirer should focus on, connect related customer/contract/debt signals, and cite the evidence.", key="advanced_question")
+    if st.button("Run advanced investigation", type="primary"):
+        try:
+            from advanced_agent.workflow import run_due_diligence
+            from agent.tools import Toolbox
+            result=run_due_diligence(aq, Toolbox(S,pipeline.DOCS['index']))
+            st.success("Investigation workflow completed")
+            c1,c2=st.columns(2)
+            c1.metric("Planned domains", len(result.get("plan", [])))
+            c2.metric("Verified findings", len(result.get("verified", [])))
+            st.write("**Plan:**", ", ".join(result.get("plan", [])))
+            st.markdown(result.get("report", "No report returned."))
+            with st.expander("Specialist observations"):
+                st.json(result.get("observations", {}))
+            with st.expander("Verification trail"):
+                st.json(result.get("verified", []))
+        except Exception as exc:
+            st.error(str(exc))
+
+with tabs[8]:
     st.subheader("AI evidence tools")
     tool_tab1,tool_tab2,tool_tab3=st.tabs(['Schema Agent','Anomaly Explainer','Evidence Verifier'])
     with tool_tab1:
@@ -162,7 +225,7 @@ with tabs[7]:
                 for e in evidence: st.caption(f"{e['source']} p.{e.get('page',1)} — {e['text'][:500]}")
             except Exception as exc: st.error(str(exc))
 
-with tabs[8]:
+with tabs[9]:
     st.subheader("AI evaluation checks")
     st.write("Small regression checks for evidence-first behavior.")
     if st.button('Run evaluation'):
