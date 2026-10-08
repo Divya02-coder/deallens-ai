@@ -24,9 +24,10 @@ The result is a system designed to answer a practical M&A question:
 
 ---
 
-## 🚀 Why DealLens?
+##  Why DealLens?
 
-Traditional document-analysis systems often stop at:
+Traditional 
+document-analysis systems often stop at:
 
 > Upload documents → ask an LLM questions → receive an answer.
 
@@ -48,7 +49,7 @@ DealLens is designed around this workflow.
 
 ---
 
-# 🧠 Core Capabilities
+#  Core Capabilities
 
 ## 1. Agentic M&A Investigation
 
