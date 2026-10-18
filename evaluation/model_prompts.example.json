@@ -1,0 +1,8 @@
+[
+  {
+    "id": "contract-termination-001",
+    "prompt": "Identify any termination-right risk in this excerpt. Return a concise claim and quote the exact supporting words. If there is no support, say not found. Excerpt: Either party may terminate this agreement upon thirty days' written notice.",
+    "system_instruction": "Use only the supplied excerpt. Do not invent facts.",
+    "reference": "The agreement allows either party to terminate on 30 days' written notice."
+  }
+]

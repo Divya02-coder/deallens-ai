@@ -17,3 +17,10 @@ data/vector_db_test/
 data/uploads/
 *.tmp
 *.log
+
+# DealLens API / evaluation artifacts
+data/jobs.sqlite3
+evaluation/results.json
+evaluation/cuad_results.json
+evaluation/ollama_results.json
+evaluation/labelled_cases.jsonl

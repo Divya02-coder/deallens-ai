@@ -18,38 +18,47 @@ st.set_page_config(page_title="DealLens AI | M&A Intelligence", page_icon="◈",
 
 st.markdown("""
 <style>
-:root { --muted:#8ea0b8; --line:#263447; --accent:#62d9c5; }
-.stApp { background:radial-gradient(circle at 80% -10%,rgba(98,217,197,.10),transparent 32%),linear-gradient(180deg,#080d14,#0b1119 55%,#080d14); }
-.block-container { max-width:1450px; padding-top:1.5rem; padding-bottom:3rem; }
-[data-testid="stSidebar"] { background:#0a1018; border-right:1px solid var(--line); }
-.hero { padding:28px 30px; border:1px solid #243447; border-radius:22px; background:linear-gradient(135deg,rgba(19,31,45,.96),rgba(12,19,29,.92)); box-shadow:0 18px 55px rgba(0,0,0,.22); margin-bottom:18px; }
-.eyebrow { color:var(--accent); text-transform:uppercase; letter-spacing:.16em; font-size:.72rem; font-weight:700; }
-.hero h1 { font-size:2.45rem; line-height:1.05; margin:.35rem 0 .65rem; letter-spacing:-.04em; }
-.hero p { color:#9eacc0; max-width:900px; margin:0; font-size:1rem; }
-.pill { display:inline-block; padding:5px 10px; border-radius:999px; background:#122b2a; border:1px solid #23524d; color:#8be8d9; font-size:.72rem; margin:12px 6px 0 0; }
-.section-head { display:flex; align-items:center; justify-content:space-between; margin:22px 0 12px; }
-.section-head h3 { margin:0; }
+:root { --ink:#172b4d; --muted:#64748b; --line:#e2e8f0; --accent:#147d75; --surface:#ffffff; }
+.stApp { background:#f5f7fb; color:#172b4d; }
+.block-container { max-width:1480px; padding-top:1.4rem; padding-bottom:3rem; }
+[data-testid="stSidebar"] { background:#101d32; border-right:1px solid #263650; }
+[data-testid="stSidebar"] * { color:#e8eef7; }
+[data-testid="stSidebar"] [data-testid="stFileUploaderDropzone"] { background:#172740; border:1px dashed #526783; }
+[data-testid="stSidebar"] button { border-radius:9px; }
+.hero { padding:32px 36px; border:1px solid #dce5ee; border-radius:20px; background:linear-gradient(120deg,#ffffff 0%,#edf7f6 100%); box-shadow:0 8px 28px rgba(15,35,60,.06); margin-bottom:18px; }
+.eyebrow { color:#147d75; text-transform:uppercase; letter-spacing:.14em; font-size:.72rem; font-weight:800; }
+.hero h1 { color:#132640; font-size:2.5rem; line-height:1.08; margin:.45rem 0 .7rem; letter-spacing:-.045em; }
+.hero p { color:#52647b; max-width:850px; margin:0; font-size:1.02rem; line-height:1.65; }
+.pill { display:inline-block; padding:5px 10px; border-radius:7px; background:#e4f4f1; border:1px solid #c4e7e1; color:#176c65; font-size:.72rem; margin:14px 6px 0 0; font-weight:650; }
+.section-head { display:flex; align-items:center; justify-content:space-between; margin:24px 0 12px; }
+.section-head h3 { margin:0; color:#172b4d; }
 .section-head span { color:var(--muted); font-size:.8rem; }
-.metric-card { background:linear-gradient(145deg,#111b28,#0e1621); border:1px solid var(--line); border-radius:16px; padding:17px 18px; min-height:98px; }
-.metric-label { color:var(--muted); font-size:.75rem; text-transform:uppercase; letter-spacing:.08em; }
-.metric-value { font-size:1.7rem; font-weight:750; margin-top:5px; }
-.metric-delta { color:#79ddcb; font-size:.72rem; margin-top:3px; }
-.risk-card { border:1px solid var(--line); border-radius:15px; padding:16px; background:#101824; margin-bottom:12px; }
-.risk-high { border-left:4px solid #ef7777; } .risk-medium { border-left:4px solid #e8bd62; } .risk-low { border-left:4px solid #62d9c5; }
-[data-testid="stTabs"] button { color:#91a2b8; font-weight:600; }
-[data-testid="stTabs"] button[aria-selected="true"] { color:#8de7d8; }
-[data-testid="stFileUploaderDropzone"] { border:1px dashed #395069; background:#0d151f; }
-div.stButton > button { border-radius:10px; border:1px solid #31445b; background:#111c29; }
-div.stButton > button[kind="primary"] { background:linear-gradient(135deg,#1b625c,#164b58); border-color:#3b8f88; }
-[data-testid="stExpander"] { border:1px solid var(--line); border-radius:12px; background:#0f1722; }
-.status-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#62d9c5; margin-right:6px; box-shadow:0 0 10px rgba(98,217,197,.7); }
+.metric-card { background:#fff; border:1px solid #e1e8f0; border-radius:14px; padding:18px 19px; min-height:106px; box-shadow:0 3px 12px rgba(20,40,70,.035); }
+.metric-label { color:#64748b; font-size:.72rem; text-transform:uppercase; letter-spacing:.075em; font-weight:700; }
+.metric-value { color:#142843; font-size:1.85rem; font-weight:760; margin-top:7px; }
+.metric-delta { color:#147d75; font-size:.75rem; margin-top:4px; }
+.risk-card { border:1px solid #e0e7ef; border-radius:14px; padding:18px; background:#fff; margin-bottom:12px; box-shadow:0 3px 12px rgba(20,40,70,.035); }
+.risk-high { border-left:4px solid #d94b55; } .risk-medium { border-left:4px solid #d99a21; } .risk-low { border-left:4px solid #159789; }
+[data-testid="stTabs"] { background:transparent; }
+[data-testid="stTabs"] button { color:#64748b; font-weight:650; }
+[data-testid="stTabs"] button[aria-selected="true"] { color:#147d75; border-bottom-color:#147d75; }
+[data-testid="stFileUploaderDropzone"] { border:1px dashed #b8c8d9; background:#f8fafc; border-radius:10px; }
+div.stButton > button, div.stDownloadButton > button { border-radius:9px; border:1px solid #d5dfeb; background:#fff; color:#243b57; font-weight:600; min-height:2.55rem; }
+div.stButton > button:hover, div.stDownloadButton > button:hover { border-color:#147d75; color:#126b65; }
+div.stButton > button[kind="primary"] { background:#147d75; border-color:#147d75; color:light blue; }
+div.stButton > button[kind="primary"]:hover { background:#106b64; color:light blue; }
+[data-testid="stExpander"] { border:1px solid #e0e7ef; border-radius:11px; background:#fff; }
+[data-testid="stDataFrame"] { border:1px solid #e0e7ef; border-radius:10px; overflow:hidden; }
+.status-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#45c2a9; margin-right:7px; box-shadow:0 0 0 3px rgba(69,194,169,.14); }
+.stAlert { border-radius:10px; }
+small, .stCaption { color:#64748b; }
 </style>
 """, unsafe_allow_html=True)
-st.markdown("""<div class="hero"><div class="eyebrow">AI-Powered M&A Intelligence</div><h1>DealLens <span style="color:#62d9c5">AI</span></h1><p>Evidence-first due diligence that connects financial signals, contracts, dependencies and transaction anomalies into investigation-ready insights.</p><span class="pill">RAG + Agentic AI</span><span class="pill">LangGraph orchestration</span><span class="pill">Evidence traceability</span></div>""", unsafe_allow_html=True)
-st.caption("◉ Investigation flags are decision-support signals, not investment conclusions.")
+st.markdown("""<div class="hero"><div class="eyebrow">M&A · Risk & Due Diligence</div><h1>DealLens <span style="color:#147d75">AI</span></h1><p>A clearer view of deal risk. Bring financial data and deal documents together to surface unusual activity, concentration risks, and evidence-backed questions for your diligence team.</p><span class="pill">Evidence-backed insights</span><span class="pill">Financial & transaction risk</span><span class="pill">Investigation workspace</span></div>""", unsafe_allow_html=True)
+st.caption("Decision-support only: findings should be reviewed alongside source evidence and professional judgement.")
 
 with st.sidebar:
-    st.markdown("### ◈ DealLens")
+    st.markdown("###  DealLens")
     st.markdown('<span class="status-dot"></span><b>Workspace online</b>', unsafe_allow_html=True)
     st.caption("M&A due-diligence command center")
     st.divider()
@@ -66,7 +75,12 @@ with st.sidebar:
                     st.success(f"Indexed {f.name} ({meta['chunks_indexed']} chunks)")
                 except Exception as exc:
                     st.error(f"Could not index {f.name}: {exc}")
-    if st.button("Reset evidence index"):
+    if st.button("Reset current analysis", help="Clear analysis results while keeping uploaded and indexed evidence"):
+        pipeline.STATE.clear()
+        for k in ("advanced_question",):
+            st.session_state.pop(k, None)
+        st.rerun()
+    if st.button("Reset evidence index", help="Remove indexed documents from the current workspace"):
         pipeline.reset_documents()
         for k in list(st.session_state):
             if str(k).startswith("uploaded_"): del st.session_state[k]
